@@ -67,7 +67,7 @@ def deskew(image):
         center = (int(rect[0][0]), int(rect[0][1]))
         width = int(rect[1][0])
         height = int(rect[1][1])
-        angle = int(rect[2])
+        angle = rect[2]
 
         cv2.drawContours(image,[box],0,(0,0,255),2)
 
