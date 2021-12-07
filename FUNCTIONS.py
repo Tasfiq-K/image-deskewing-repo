@@ -87,3 +87,69 @@ def deskew(image):
             dst = cv2.warpAffine(original_image, M, (cols, rows))   # angle corrected image
 
     return dst, angle
+
+
+def ROI_deskewed_image(image):
+
+    """Crop the Region Of Interest (ROI) of a deskewed (corrected angle) OCT image
+       Param       : image 
+       Description : image = should be an deskewed image
+       
+       Returns: Returns the ROI (cropped) of the OCT image
+    """
+
+    import cv2
+    from math import atan2, cos, sin, sqrt, pi
+    import numpy as np
+
+    original_image = image.copy()
+
+    image = white_removal(original_image)    # assigns erodded image to image
+    
+    # convert image to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # convert imgae to binary
+    _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+
+    # find all the contours in the thresholded image
+    contours, _ = cv2.findContours(bw, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+
+    for i, c in enumerate(contours):
+        area = cv2.contourArea(c)
+
+        # ignore contours that are too small or too large
+        if area < 5000 or 1000000 < area:
+            continue
+        # cv.minAreaRect returns:
+        # (center(x, y), (width, height), angle of rotation) = cv2.minAreaRect(c)
+
+        rect = cv2.minAreaRect(c)
+        box = cv2.boxPoints(rect)
+        box = np.int0(box)
+        
+        # getting the important parameters from the rectangle
+        # (center(x, y), (width, height), angle of rotation)
+        center = (int(rect[0][0]), int(rect[0][1]))
+        width = int(rect[1][0])
+        height = int(rect[1][1])
+        angle = int(rect[2])
+
+        cv2.drawContours(image,[box],0,(0,0,255),2)
+
+        x_axes = []
+        y_axes = []
+
+        for x_coords, y_coords in box:
+            x_axes.append(x_coords)
+            y_axes.append(y_coords)
+
+        min_x = min([0 if x < 0 else x for x in x_axes])
+        max_x = max(x_axes)
+        min_y = min([0 if y < 0 else y for y in y_axes])
+        max_y = max(y_axes)
+
+        sliced_image = original_image[min_y:max_y+1, min_x:max_x+1]
+
+    return sliced_image
+
