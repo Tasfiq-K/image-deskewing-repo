@@ -91,7 +91,8 @@ def deskew(image):
 
 def ROI_deskewed_image(image):
 
-    """Crop the Region Of Interest (ROI) of a deskewed (corrected angle) OCT image
+    """
+       Crop the Region Of Interest (ROI) of a deskewed (corrected angle) OCT image
        Param       : image 
        Description : image = should be an deskewed image
        
